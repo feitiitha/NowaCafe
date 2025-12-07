@@ -82,6 +82,6 @@ form.addEventListener('submit', function(e) {
     
     // Redirect to login page after successful registration
     setTimeout(function() {
-    window.location.href = '../login/login.html';
-}, 1500);
+        window.location.href = '../Login/login.html';
+    }, 1500);
 });

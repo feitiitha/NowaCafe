@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Café Nowa - Premium Coffee Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,8 +20,30 @@
                 <li><a href="#contact">Contact</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="../login/login.html" class="btn-login">Login</a>
-                <button class="order-btn">Order Now</button>
+                <button class="cart-btn" id="cartBtn">
+                    <span class="cart-icon">🛒</span>
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+                <a href="../login/login.html" class="btn-login" id="loginBtn">Login</a>
+                <div class="user-profile" id="userProfile" style="display: none;">
+                    <div class="profile-trigger" id="profileTrigger">
+                        <div class="profile-avatar" id="profileAvatar">U</div>
+                        <span class="profile-name" id="profileName">User</span>
+                        <span class="profile-arrow">▼</span>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="#" id="viewProfileBtn">
+                            <span></span> View Profile
+                        </a>
+                        <a href="#" id="myOrdersBtn">
+                            <span></span> My Orders
+                        </a>
+                        <a href="#" id="logoutBtn">
+                            <span></span> Logout
+                        </a>
+                    </div>
+                </div>
+                <button class="order-btn" id="orderNowBtn">Order Now</button>
             </div>
             <div class="hamburger" id="hamburger">
                 <span></span>
@@ -30,14 +53,35 @@
         </div>
     </nav>
 
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Your Cart</h2>
+            <button class="close-cart" id="closeCart">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <p class="empty-cart">Your cart is empty</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">$0.00</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
             <h1 class="hero-title">Where Every Cup Tells a Story</h1>
             <p class="hero-subtitle">Experience the finest handcrafted coffee in town</p>
             <div class="hero-buttons">
-                <button class="btn-primary">Explore Menu</button>
-                <button class="btn-secondary">Visit Us</button>
+                <button class="btn-primary" onclick="scrollToMenu()">Explore Menu</button>
+                <button class="btn-secondary" onclick="scrollToContact()">Visit Us</button>
             </div>
         </div>
         <div class="scroll-indicator">
@@ -95,7 +139,7 @@
 
             <div class="menu-grid" id="menuGrid">
                 <!-- Hot Coffee -->
-                <div class="menu-item" data-category="hot">
+                <div class="menu-item" data-category="hot" data-name="Classic Espresso" data-price="3.50">
                     <div class="menu-item-image">
                         <img src="assets/espresso.jpg" alt="Espresso">
                         <div class="menu-overlay">
@@ -109,9 +153,9 @@
                     </div>
                 </div>
 
-                <div class="menu-item" data-category="hot">
+                <div class="menu-item" data-category="hot" data-name="Cappuccino" data-price="4.50">
                     <div class="menu-item-image">
-                        <img src="assets/cappuccino.jpg" alt="Cappuccino">
+                        <img src="assets/capuccino.jpg" alt="Cappuccino">
                         <div class="menu-overlay">
                             <button class="add-to-cart">Add to Cart</button>
                         </div>
@@ -123,7 +167,7 @@
                     </div>
                 </div>
 
-                <div class="menu-item" data-category="hot">
+                <div class="menu-item" data-category="hot" data-name="Caffè Latte" data-price="4.75">
                     <div class="menu-item-image">
                         <img src="assets/latte.jpg" alt="Caffe Latte">
                         <div class="menu-overlay">
@@ -138,7 +182,7 @@
                 </div>
 
                 <!-- Cold Coffee -->
-                <div class="menu-item" data-category="cold">
+                <div class="menu-item" data-category="cold" data-name="Cold Brew" data-price="5.00">
                     <div class="menu-item-image">
                         <img src="assets/coldbrew.jpg" alt="Cold Brew">
                         <div class="menu-overlay">
@@ -152,7 +196,7 @@
                     </div>
                 </div>
 
-                <div class="menu-item" data-category="cold">
+                <div class="menu-item" data-category="cold" data-name="Iced Latte" data-price="4.75">
                     <div class="menu-item-image">
                         <img src="assets/iced-latte.jpg" alt="Iced Latte">
                         <div class="menu-overlay">
@@ -166,7 +210,7 @@
                     </div>
                 </div>
 
-                <div class="menu-item" data-category="cold">
+                <div class="menu-item" data-category="cold" data-name="Caramel Frappé" data-price="5.50">
                     <div class="menu-item-image">
                         <img src="assets/frappe.jpg" alt="Frappe">
                         <div class="menu-overlay">
@@ -181,7 +225,7 @@
                 </div>
 
                 <!-- Specialty -->
-                <div class="menu-item" data-category="specialty">
+                <div class="menu-item" data-category="specialty" data-name="Mocha Delight" data-price="5.25">
                     <div class="menu-item-image">
                         <img src="assets/mocha.jpg" alt="Mocha">
                         <div class="menu-overlay">
@@ -195,7 +239,7 @@
                     </div>
                 </div>
 
-                <div class="menu-item" data-category="specialty">
+                <div class="menu-item" data-category="specialty" data-name="Matcha Latte" data-price="5.50">
                     <div class="menu-item-image">
                         <img src="assets/matcha.jpg" alt="Matcha Latte">
                         <div class="menu-overlay">
@@ -209,7 +253,7 @@
                     </div>
                 </div>
 
-                <div class="menu-item" data-category="specialty">
+                <div class="menu-item" data-category="specialty" data-name="Nowa Special" data-price="6.00">
                     <div class="menu-item-image">
                         <img src="assets/signature.jpg" alt="Signature">
                         <div class="menu-overlay">
@@ -281,6 +325,46 @@
             </div>
         </div>
     </section>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content checkout-modal">
+            <span class="close" id="closeCheckout">&times;</span>
+            <h2>Complete Your Order</h2>
+            <div class="checkout-summary">
+                <h3>Order Summary</h3>
+                <div id="checkoutItems"></div>
+                <div class="checkout-total">
+                    <strong>Total:</strong>
+                    <strong id="checkoutTotal">$0.00</strong>
+                </div>
+            </div>
+            <button class="btn-primary place-order-btn" id="placeOrderBtn">Place Order</button>
+        </div>
+    </div>
+
+    <!-- Order Confirmation Modal -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content confirmation-modal">
+            <div class="confirmation-icon">✓</div>
+            <h2>Order Placed Successfully!</h2>
+            <p>Your order number is:</p>
+            <div class="order-code" id="orderCode">ABC123</div>
+            <p class="order-instruction">Please show this code to the employee when picking up your order.</p>
+            <button class="btn-primary" id="closeConfirmation">Got it!</button>
+        </div>
+    </div>
+
+    <!-- My Orders Modal -->
+    <div class="modal" id="ordersModal">
+        <div class="modal-content orders-modal">
+            <span class="close" id="closeOrders">&times;</span>
+            <h2>My Orders</h2>
+            <div class="orders-list" id="ordersList">
+                <p class="no-orders">No orders yet</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">

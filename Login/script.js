@@ -2,7 +2,7 @@
 const form = document.getElementById('loginForm');
 
 // Simulated user database (replace with actual database later)
-const users = [
+const defaultUsers = [
     // Admin accounts
     { email: 'admin@cafenowa.com', password: 'admin123', role: 'admin' },
     
@@ -41,8 +41,14 @@ form.addEventListener('submit', function(e) {
         return;
     }
     
-    // Find user in database
-    const user = users.find(u => u.email === email && u.password === password);
+    // Get registered users from localStorage
+    let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+    
+    // Combine default users with registered users
+    const allUsers = [...defaultUsers, ...registeredUsers];
+    
+    // Find user in combined database
+    const user = allUsers.find(u => u.email === email && u.password === password);
     
     if (user) {
         // Store user data in sessionStorage
@@ -54,11 +60,11 @@ form.addEventListener('submit', function(e) {
         switch(user.role) {
             case 'admin':
                 alert('Login successful! Welcome Admin.');
-                window.location.href = '../admin/admin-dashboard.html';
+                window.location.href = '../Admin/admin-dashboard.html';
                 break;
             case 'employee':
                 alert('Login successful! Welcome Employee.');
-                window.location.href = '../employee/employee-dashboard.html';
+                window.location.href = '../Employee/employee-dashboard.html';
                 break;
             case 'customer':
                 alert('Login successful! Welcome back!');

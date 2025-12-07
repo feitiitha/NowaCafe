@@ -101,3 +101,184 @@ if (settingsSection) {
         });
     }
 }
+
+// ========== INVENTORY MANAGEMENT ==========
+
+// Inventory Management Functions
+const addInventoryBtn = document.getElementById('addInventoryBtn');
+const addInventoryModal = document.getElementById('addInventoryModal');
+const updateStockModal = document.getElementById('updateStockModal');
+
+// Make sure modals are hidden on page load
+document.addEventListener('DOMContentLoaded', () => {
+    closeAllModals();
+});
+
+// Helper function to close all modals
+function closeAllModals() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.classList.remove('active');
+    });
+    document.body.style.overflow = 'auto';
+}
+
+// Open Add Inventory Modal
+if (addInventoryBtn) {
+    addInventoryBtn.addEventListener('click', () => {
+        closeAllModals();
+        addInventoryModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+}
+
+// Close modals when clicking X button
+document.querySelectorAll('.close').forEach(closeBtn => {
+    closeBtn.addEventListener('click', function() {
+        closeAllModals();
+    });
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+        closeAllModals();
+    }
+});
+
+function closeModal() {
+    closeAllModals();
+}
+
+// Update Stock Function
+function updateStock(button) {
+    const row = button.closest('tr');
+    const itemName = row.querySelector('td:first-child strong').textContent;
+    
+    closeAllModals();
+    updateStockModal.classList.add('active');
+    updateStockModal.querySelector('input[readonly]').value = itemName;
+    document.body.style.overflow = 'hidden';
+}
+
+// Edit Inventory Function
+function editInventory(button) {
+    const row = button.closest('tr');
+    const itemName = row.querySelector('td:first-child strong').textContent;
+    
+    showNotification(`Editing ${itemName} - Connect to database to enable editing`);
+}
+
+// Delete Inventory Function
+function deleteInventory(button) {
+    const row = button.closest('tr');
+    const itemName = row.querySelector('td:first-child strong').textContent;
+    
+    if (confirm(`Are you sure you want to delete ${itemName} from inventory?`)) {
+        row.style.animation = 'fadeOut 0.5s ease';
+        setTimeout(() => {
+            row.remove();
+            showNotification(`${itemName} removed from inventory`);
+        }, 500);
+    }
+}
+
+// Add Inventory Form Submission
+const addInventoryForm = document.getElementById('addInventoryForm');
+if (addInventoryForm) {
+    addInventoryForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        showNotification('New inventory item added successfully!');
+        closeModal();
+        addInventoryForm.reset();
+    });
+}
+
+// Update Stock Form Submission
+const updateStockForm = document.getElementById('updateStockForm');
+if (updateStockForm) {
+    updateStockForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        showNotification('Stock updated successfully!');
+        closeModal();
+        updateStockForm.reset();
+    });
+}
+
+// Inventory Search
+const inventorySearch = document.getElementById('inventorySearch');
+if (inventorySearch) {
+    inventorySearch.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const tableRows = document.querySelectorAll('#inventoryTableBody tr');
+        
+        tableRows.forEach(row => {
+            const itemName = row.querySelector('td:first-child').textContent.toLowerCase();
+            const category = row.querySelectorAll('td')[1].textContent.toLowerCase();
+            
+            if (itemName.includes(searchTerm) || category.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Notification System
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background-color: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+        font-weight: 600;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+// Auto-generate low stock alerts
+function checkLowStock() {
+    const rows = document.querySelectorAll('#inventoryTableBody tr');
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+    
+    rows.forEach(row => {
+        const statusBadge = row.querySelector('.status-badge');
+        if (statusBadge && statusBadge.classList.contains('low')) lowStockCount++;
+        if (statusBadge && statusBadge.classList.contains('out')) outOfStockCount++;
+    });
+    
+    // Update alert cards if they exist
+    const alertCards = document.querySelectorAll('.alert-card');
+    if (alertCards.length >= 2) {
+        alertCards[0].querySelector('p').textContent = `${lowStockCount} items below minimum quantity`;
+        alertCards[1].querySelector('p').textContent = `${outOfStockCount} items need immediate restock`;
+    }
+}
+
+// Run low stock check on page load
+setTimeout(() => {
+    if (document.getElementById('inventory')) {
+        checkLowStock();
+    }
+}, 500);
