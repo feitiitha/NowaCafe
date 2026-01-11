@@ -11,6 +11,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Search and Filters
     setupSearchAndFilters();
+
+    // NEW: Initialize Revenue Graph (Default to Daily)
+    if (document.getElementById('revenueChart')) {
+        loadRevenueChart('daily');
+    }
 });
 
 // Sidebar & Navigation
@@ -33,25 +38,39 @@ navItems.forEach(item => {
         if (sectionId === 'orders') loadOrders();
         if (sectionId === 'employees') loadEmployees();
         if (sectionId === 'customers') loadCustomers();
-        if (sectionId === 'analytics') loadAnalytics();
+        if (sectionId === 'analytics') {
+            loadAnalytics();
+            // Refresh chart when tab is opened
+            if (document.getElementById('revenueChart')) {
+                loadRevenueChart('daily'); 
+            }
+        }
     });
 });
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.querySelector('.sidebar');
-menuToggle.addEventListener('click', () => { sidebar.classList.toggle('active'); });
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => { sidebar.classList.toggle('active'); });
+}
 
 // LOGOUT MODAL LOGIC
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    openModal('logoutModal');
-});
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        openModal('logoutModal');
+    });
+}
 
-document.getElementById('confirmLogoutBtn').addEventListener('click', () => {
-    sessionStorage.clear();
-    window.location.href = '../login/login.html';
-});
+const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = '../Login/login.html';
+    });
+}
 
-// ========== NEW: SEARCH AND FILTERS SETUP ==========
+// ========== SEARCH AND FILTERS SETUP ==========
 function setupSearchAndFilters() {
     // 1. Inventory Search
     const inventorySearch = document.getElementById('inventorySearch');
@@ -74,7 +93,6 @@ function setupSearchAndFilters() {
             const rows = document.querySelectorAll('#ordersTableBody tr');
 
             rows.forEach(row => {
-                // Find the status span within the row
                 const statusBadge = row.querySelector('.status');
                 if (statusBadge) {
                     const rowStatus = statusBadge.textContent.trim();
@@ -166,14 +184,16 @@ async function loadInventory() {
     } catch (e) { }
 }
 
-document.getElementById('addInventoryBtn').addEventListener('click', () => {
-    document.getElementById('addInventoryForm').reset();
-    document.getElementById('inventoryModalTitle').textContent = "Add New Inventory Item";
-    document.getElementById('inventoryId').value = "";
-    openModal('addInventoryModal');
-});
+const addInventoryBtn = document.getElementById('addInventoryBtn');
+if (addInventoryBtn) {
+    addInventoryBtn.addEventListener('click', () => {
+        document.getElementById('addInventoryForm').reset();
+        document.getElementById('inventoryModalTitle').textContent = "Add New Inventory Item";
+        document.getElementById('inventoryId').value = "";
+        openModal('addInventoryModal');
+    });
+}
 
-// Download Stock Report Button
 const downloadBtn = document.getElementById('downloadStockBtn');
 if (downloadBtn) {
     downloadBtn.addEventListener('click', () => {
@@ -181,34 +201,37 @@ if (downloadBtn) {
     });
 }
 
-document.getElementById('addInventoryForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = {
-        item_name: document.getElementById('invName').value,
-        category: document.getElementById('invCategory').value,
-        current_stock: document.getElementById('invStock').value,
-        unit: document.getElementById('invUnit').value,
-        min_quantity: document.getElementById('invMin').value,
-        unit_cost: document.getElementById('invCost').value,
-        supplier: document.getElementById('invSupplier').value
-    };
+const addInventoryForm = document.getElementById('addInventoryForm');
+if (addInventoryForm) {
+    addInventoryForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = {
+            item_name: document.getElementById('invName').value,
+            category: document.getElementById('invCategory').value,
+            current_stock: document.getElementById('invStock').value,
+            unit: document.getElementById('invUnit').value,
+            min_quantity: document.getElementById('invMin').value,
+            unit_cost: document.getElementById('invCost').value,
+            supplier: document.getElementById('invSupplier').value
+        };
 
-    try {
-        const response = await fetch('../api/admin/add_inventory.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const data = await response.json();
-        if (data.success) {
-            showNotification('Item Saved Successfully');
-            closeModal();
-            loadInventory();
-        } else {
-            showNotification(data.message, 'error');
-        }
-    } catch (error) { showNotification('Error saving item', 'error'); }
-});
+        try {
+            const response = await fetch('../api/admin/add_inventory.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification('Item Saved Successfully');
+                closeModal();
+                loadInventory();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        } catch (error) { showNotification('Error saving item', 'error'); }
+    });
+}
 
 function openUpdateStock(id, name) {
     document.getElementById('updateStockForm').reset();
@@ -217,31 +240,34 @@ function openUpdateStock(id, name) {
     openModal('updateStockModal');
 }
 
-document.getElementById('updateStockForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = e.target.dataset.id;
-    const formData = {
-        inventory_id: id,
-        action: document.getElementById('updateStockAction').value,
-        quantity: document.getElementById('updateStockQty').value,
-        notes: document.getElementById('updateStockNotes').value
-    };
+const updateStockForm = document.getElementById('updateStockForm');
+if (updateStockForm) {
+    updateStockForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = e.target.dataset.id;
+        const formData = {
+            inventory_id: id,
+            action: document.getElementById('updateStockAction').value,
+            quantity: document.getElementById('updateStockQty').value,
+            notes: document.getElementById('updateStockNotes').value
+        };
 
-    try {
-        const response = await fetch('../api/admin/update_stock.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const data = await response.json();
-        if (data.success) {
-            showNotification('Stock updated');
-            closeModal();
-            loadInventory();
-            loadStockMovements();
-        } else showNotification(data.message, 'error');
-    } catch (e) { showNotification('Error updating stock', 'error'); }
-});
+        try {
+            const response = await fetch('../api/admin/update_stock.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification('Stock updated');
+                closeModal();
+                loadInventory();
+                loadStockMovements();
+            } else showNotification(data.message, 'error');
+        } catch (e) { showNotification('Error updating stock', 'error'); }
+    });
+}
 
 // --- INVENTORY DELETE MODAL ---
 let itemToDeleteId = null;
@@ -280,7 +306,7 @@ async function loadProducts() {
         if (data.success) {
             document.querySelector('.products-grid').innerHTML = data.products.map(p => `
                 <div class="product-card">
-                    <img src="../${p.image_url}" onerror="this.src='../landing/assets/espresso.jpg'" alt="${p.name}">
+                    <img src="../${p.image_url}" onerror="this.src='../Landingpage/assets/cup.png'" alt="${p.name}">
                     <h4>${p.name}</h4>
                     <p class="product-price">₱${parseFloat(p.price).toFixed(2)}</p>
                     <div class="product-actions">
@@ -293,13 +319,16 @@ async function loadProducts() {
     } catch (e) { }
 }
 
-document.getElementById('addProductBtn').addEventListener('click', () => {
-    document.getElementById('addProductForm').reset();
-    document.getElementById('productModalTitle').textContent = "Add New Product";
-    document.getElementById('prodId').value = "";
-    document.getElementById('prodImage').value = ""; // Clear file input
-    openModal('addProductModal');
-});
+const addProductBtn = document.getElementById('addProductBtn');
+if (addProductBtn) {
+    addProductBtn.addEventListener('click', () => {
+        document.getElementById('addProductForm').reset();
+        document.getElementById('productModalTitle').textContent = "Add New Product";
+        document.getElementById('prodId').value = "";
+        document.getElementById('prodImage').value = "";
+        openModal('addProductModal');
+    });
+}
 
 function openEditProduct(product) {
     document.getElementById('productModalTitle').textContent = "Edit Product";
@@ -308,63 +337,63 @@ function openEditProduct(product) {
     document.getElementById('prodCategory').value = product.category;
     document.getElementById('prodPrice').value = product.price;
     document.getElementById('prodStock').value = product.stock_quantity;
-    document.getElementById('prodImage').value = ""; // Clear file input
+    document.getElementById('prodImage').value = "";
     document.getElementById('prodDesc').value = product.description;
     openModal('addProductModal');
 }
 
-document.getElementById('addProductForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+const addProductForm = document.getElementById('addProductForm');
+if (addProductForm) {
+    addProductForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-    const formData = new FormData();
-    const id = document.getElementById('prodId').value;
+        const formData = new FormData();
+        const id = document.getElementById('prodId').value;
 
-    if (id) formData.append('product_id', id);
-    formData.append('name', document.getElementById('prodName').value);
-    formData.append('category', document.getElementById('prodCategory').value);
-    formData.append('price', document.getElementById('prodPrice').value);
-    formData.append('stock_quantity', document.getElementById('prodStock').value);
-    formData.append('description', document.getElementById('prodDesc').value);
+        if (id) formData.append('product_id', id);
+        formData.append('name', document.getElementById('prodName').value);
+        formData.append('category', document.getElementById('prodCategory').value);
+        formData.append('price', document.getElementById('prodPrice').value);
+        formData.append('stock_quantity', document.getElementById('prodStock').value);
+        formData.append('description', document.getElementById('prodDesc').value);
 
-    const fileInput = document.getElementById('prodImage');
-    if (fileInput.files.length > 0) {
-        formData.append('image', fileInput.files[0]);
-    }
-
-    const url = id ? '../api/admin/update_product.php' : '../api/admin/add_product.php';
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification(id ? 'Product Updated' : 'Product Added');
-            closeModal();
-            loadProducts();
-        } else {
-            showNotification(data.message, 'error');
+        const fileInput = document.getElementById('prodImage');
+        if (fileInput.files.length > 0) {
+            formData.append('image', fileInput.files[0]);
         }
-    } catch (e) {
-        console.error(e);
-        showNotification('Error saving product', 'error');
-    }
-});
+
+        const url = id ? '../api/admin/update_product.php' : '../api/admin/add_product.php';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification(id ? 'Product Updated' : 'Product Added');
+                closeModal();
+                loadProducts();
+            } else {
+                showNotification(data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showNotification('Error saving product', 'error');
+        }
+    });
+}
 
 // --- PRODUCT DELETE MODAL LOGIC ---
 let productToDeleteId = null;
-
 function deleteProduct(id) {
     productToDeleteId = id;
     openModal('deleteProductModal');
 }
-
 async function confirmDeleteProduct() {
     if (!productToDeleteId) return;
-
     try {
         const response = await fetch('../api/admin/delete_product.php', {
             method: 'POST',
@@ -372,7 +401,6 @@ async function confirmDeleteProduct() {
             body: JSON.stringify({ product_id: productToDeleteId })
         });
         const data = await response.json();
-
         if (data.success) {
             showNotification('Product deleted successfully', 'success');
             loadProducts();
@@ -418,12 +446,15 @@ async function loadEmployees() {
     } catch (e) { }
 }
 
-document.getElementById('addEmployeeBtn').addEventListener('click', () => {
-    document.getElementById('addEmployeeForm').reset();
-    document.getElementById('employeeModalTitle').textContent = "Add New Employee";
-    document.getElementById('empId').value = "";
-    openModal('addEmployeeModal');
-});
+const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+if (addEmployeeBtn) {
+    addEmployeeBtn.addEventListener('click', () => {
+        document.getElementById('addEmployeeForm').reset();
+        document.getElementById('employeeModalTitle').textContent = "Add New Employee";
+        document.getElementById('empId').value = "";
+        openModal('addEmployeeModal');
+    });
+}
 
 function openEditEmployee(emp) {
     document.getElementById('employeeModalTitle').textContent = "Edit Employee";
@@ -435,47 +466,47 @@ function openEditEmployee(emp) {
     openModal('addEmployeeModal');
 }
 
-document.getElementById('addEmployeeForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('empId').value;
-    const url = id ? '../api/admin/update_employee.php' : '../api/admin/add_employee.php';
+const addEmployeeForm = document.getElementById('addEmployeeForm');
+if (addEmployeeForm) {
+    addEmployeeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('empId').value;
+        const url = id ? '../api/admin/update_employee.php' : '../api/admin/add_employee.php';
 
-    const formData = {
-        user_id: id,
-        username: document.getElementById('empName').value,
-        email: document.getElementById('empEmail').value,
-        phone: document.getElementById('empPhone').value,
-        role: document.getElementById('empRole').value,
-        password: document.getElementById('empPassword').value,
-        status: 'active'
-    };
+        const formData = {
+            user_id: id,
+            username: document.getElementById('empName').value,
+            email: document.getElementById('empEmail').value,
+            phone: document.getElementById('empPhone').value,
+            role: document.getElementById('empRole').value,
+            password: document.getElementById('empPassword').value,
+            status: 'active'
+        };
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const data = await response.json();
-        if (data.success) {
-            showNotification(id ? 'Employee Updated' : 'Employee Added');
-            closeModal();
-            loadEmployees();
-        } else showNotification(data.message, 'error');
-    } catch (e) { showNotification('Error saving employee', 'error'); }
-});
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification(id ? 'Employee Updated' : 'Employee Added');
+                closeModal();
+                loadEmployees();
+            } else showNotification(data.message, 'error');
+        } catch (e) { showNotification('Error saving employee', 'error'); }
+    });
+}
 
 // --- EMPLOYEE DELETE MODAL LOGIC ---
 let employeeToDeleteId = null;
-
 function deleteEmployee(id) {
     employeeToDeleteId = id;
     openModal('deleteEmployeeModal');
 }
-
 async function confirmDeleteEmployee() {
     if (!employeeToDeleteId) return;
-
     try {
         const response = await fetch('../api/admin/delete_employee.php', {
             method: 'POST',
@@ -483,7 +514,6 @@ async function confirmDeleteEmployee() {
             body: JSON.stringify({ user_id: employeeToDeleteId })
         });
         const data = await response.json();
-
         if (data.success) {
             showNotification('Employee removed successfully', 'success');
             loadEmployees();
@@ -499,8 +529,7 @@ async function confirmDeleteEmployee() {
 }
 
 // --- SCHEDULE MANAGEMENT LOGIC (Admin Side) ---
-let scheduleToDeleteId = null; // Stores ID for deletion
-
+let scheduleToDeleteId = null;
 async function openSchedule(userId, username) {
     document.getElementById('scheduleUserId').value = userId;
     document.getElementById('scheduleModalTitle').textContent = `Manage Schedule: ${username}`;
@@ -519,9 +548,7 @@ async function loadEmployeeSchedule(userId) {
                 <tr>
                     <td>${s.day_of_week}</td>
                     <td>${formatTime(s.start_time)} - ${formatTime(s.end_time)}</td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteSchedule(${s.schedule_id})">Remove</button>
-                    </td>
+                    <td><button class="btn-delete" onclick="deleteSchedule(${s.schedule_id})">Remove</button></td>
                 </tr>
             `).join('');
         } else {
@@ -539,33 +566,33 @@ function formatTime(timeString) {
     return `${h12}:${minutes} ${ampm}`;
 }
 
-document.getElementById('addScheduleForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const userId = document.getElementById('scheduleUserId').value;
+const addScheduleForm = document.getElementById('addScheduleForm');
+if (addScheduleForm) {
+    addScheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('scheduleUserId').value;
+        const formData = {
+            user_id: userId,
+            day: document.getElementById('schedDay').value,
+            start: document.getElementById('schedStart').value,
+            end: document.getElementById('schedEnd').value
+        };
+        try {
+            const response = await fetch('../api/admin/add_schedule.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            const data = await response.json();
+            if (data.success) {
+                loadEmployeeSchedule(userId);
+            } else {
+                alert(data.message);
+            }
+        } catch (e) { console.error(e); }
+    });
+}
 
-    const formData = {
-        user_id: userId,
-        day: document.getElementById('schedDay').value,
-        start: document.getElementById('schedStart').value,
-        end: document.getElementById('schedEnd').value
-    };
-
-    try {
-        const response = await fetch('../api/admin/add_schedule.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-        const data = await response.json();
-        if (data.success) {
-            loadEmployeeSchedule(userId);
-        } else {
-            alert(data.message);
-        }
-    } catch (e) { console.error(e); }
-});
-
-// --- SCHEDULE DELETE MODAL LOGIC ---
 function deleteSchedule(scheduleId) {
     scheduleToDeleteId = scheduleId;
     openModal('deleteScheduleModal');
@@ -573,10 +600,7 @@ function deleteSchedule(scheduleId) {
 
 async function confirmDeleteSchedule() {
     if (!scheduleToDeleteId) return;
-
-    // Get the current user ID being viewed to reload their schedule
     const userId = document.getElementById('scheduleUserId').value;
-
     try {
         const response = await fetch('../api/admin/delete_schedule.php', {
             method: 'POST',
@@ -584,10 +608,9 @@ async function confirmDeleteSchedule() {
             body: JSON.stringify({ schedule_id: scheduleToDeleteId })
         });
         const data = await response.json();
-
         if (data.success) {
             showNotification('Shift removed successfully', 'success');
-            loadEmployeeSchedule(userId); // Reload the list
+            loadEmployeeSchedule(userId);
         } else {
             showNotification(data.message || 'Error removing shift', 'error');
         }
@@ -605,7 +628,6 @@ async function loadOrders() {
         const response = await fetch('../api/admin/get_orders.php');
         const data = await response.json();
         if (data.success) {
-            // FIXED: Target the specific body ID
             document.getElementById('ordersTableBody').innerHTML = data.orders.map(o => `
                 <tr>
                     <td>#${o.transaction_id}</td>
@@ -669,10 +691,7 @@ async function viewCustomer(id) {
         } else {
             showNotification(data.message || 'Error fetching details', 'error');
         }
-    } catch (e) {
-        console.error(e);
-        showNotification('An error occurred', 'error');
-    }
+    } catch (e) { console.error(e); showNotification('An error occurred', 'error'); }
 }
 
 async function loadStockMovements() {
@@ -718,4 +737,111 @@ async function loadSettings() {
             }
         }
     } catch (e) { }
+}
+
+// ========== REVENUE GRAPH LOGIC ==========
+let revenueChartInstance = null;
+
+async function loadRevenueChart(period) {
+    // 1. Update Buttons State
+    document.querySelectorAll('.chart-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.backgroundColor = 'white';
+        btn.style.color = '#333';
+        btn.style.borderColor = '#ccc';
+    });
+    
+    const activeBtn = document.getElementById(`btn-${period}`);
+    if(activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.backgroundColor = '#6b5442'; // Primary Color
+        activeBtn.style.color = 'white';
+        activeBtn.style.borderColor = '#6b5442';
+    }
+
+    // 2. Fetch Data from API
+    try {
+        const response = await fetch(`../api/admin/get_revenue_graph.php?period=${period}`);
+        const result = await response.json();
+
+        if (result.success) {
+            renderChart(result.data, period);
+        } else {
+            console.error("Failed to load chart data:", result.message);
+        }
+    } catch (e) {
+        console.error("Network error loading chart:", e);
+    }
+}
+
+function renderChart(data, period) {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+
+    if (revenueChartInstance) {
+        revenueChartInstance.destroy();
+    }
+
+    const labels = data.map(item => item.label);
+    const values = data.map(item => item.total);
+
+    const context = ctx.getContext('2d');
+    const gradient = context.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(107, 84, 66, 0.5)');
+    gradient.addColorStop(1, 'rgba(107, 84, 66, 0.0)');
+
+    revenueChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Total Revenue',
+                data: values,
+                backgroundColor: gradient,
+                borderColor: '#6b5442',
+                borderWidth: 2,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#6b5442',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Revenue: ₱' + Number(context.raw).toLocaleString(undefined, {minimumFractionDigits: 2});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { borderDash: [5, 5], color: '#f0f0f0' },
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
 }
