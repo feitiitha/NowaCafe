@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Café Nowa</title>
     <link rel="stylesheet" href="admin-styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -273,6 +274,23 @@
                     <span class="analytics-info">0 sold</span>
                 </div>
             </div>
+
+            <div style="background: white; padding: 20px; border-radius: 16px; margin-top: 20px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Revenue Trends</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="loadRevenueChart('daily')" class="chart-btn active" id="btn-daily" 
+                            style="padding: 6px 12px; border: 1px solid #ccc; background: #6b5442; color: white; border-radius: 6px; cursor: pointer;">Daily</button>
+                        <button onclick="loadRevenueChart('monthly')" class="chart-btn" id="btn-monthly" 
+                            style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer;">Monthly</button>
+                        <button onclick="loadRevenueChart('yearly')" class="chart-btn" id="btn-yearly" 
+                            style="padding: 6px 12px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer;">Yearly</button>
+                    </div>
+                </div>
+                <div style="height: 400px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
         </section>
 
         <section id="settings" class="content-section">
@@ -314,11 +332,11 @@
                         <label>Category *</label>
                         <select id="invCategory" required>
                             <option value="">Select Category</option>
-                            <option>Coffee Beans</option>
-                            <option>Milk & Dairy</option>
-                            <option>Syrups</option>
-                            <option>Cups & Packaging</option>
-                            <option>Other Supplies</option>
+                            <option value="Coffee Beans">Coffee Beans</option>
+                            <option value="Milk & Dairy">Milk & Dairy</option>
+                            <option value="Syrups">Syrups</option>
+                            <option value="Cups & Packaging">Cups & Packaging</option>
+                            <option value="Other Supplies">Other Supplies</option>
                         </select>
                     </div>
                 </div>
@@ -504,7 +522,8 @@
                 <tbody id="viewOrderItems"></tbody>
             </table>
             <div style="text-align: right; font-size: 1.2rem; font-weight: bold;">
-                Total: ₱<span id="viewOrderTotal">0.00</span> </div>
+                Total: ₱<span id="viewOrderTotal">0.00</span>
+            </div>
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" onclick="closeModal()">Close</button>
             </div>
@@ -634,13 +653,13 @@
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 0.85em;">Day</label>
                         <select id="schedDay" required style="padding: 8px; width: 100%;">
-                            <option>Monday</option>
-                            <option>Tuesday</option>
-                            <option>Wednesday</option>
-                            <option>Thursday</option>
-                            <option>Friday</option>
-                            <option>Saturday</option>
-                            <option>Sunday</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
                         </select>
                     </div>
                     <div class="form-group" style="margin: 0;">
